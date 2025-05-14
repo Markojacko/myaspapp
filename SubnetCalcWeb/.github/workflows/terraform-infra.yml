@@ -16,7 +16,7 @@ on:
 
 jobs:
   terraform:
-    name: “🛠️ Terraform ${{ github.event.inputs.action | upper }}”
+    name: "🛠️ Terraform ${{ github.event.inputs.action }}"
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID:       ${{ secrets.AZURE_CLIENT_ID }}
