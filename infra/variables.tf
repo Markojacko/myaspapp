@@ -10,12 +10,6 @@ variable "resource_group_name" {
   default     = "rg-subnetcalc"
 }
 
-variable "acr_name" {
-  description = "Name of the Azure Container Registry (must be globally unique)"
-  type        = string
-  default     = "acrsubnetcalc${random_integer.suffix.result}"
-}
-
 variable "aks_cluster_name" {
   description = "Name of the AKS cluster"
   type        = string
@@ -38,10 +32,4 @@ variable "kubernetes_version" {
   description = "Kubernetes version for AKS"
   type        = string
   default     = "1.27.3"
-}
-
-# To make ACR name unique
-resource "random_integer" "suffix" {
-  min = 10000
-  max = 99999
 }

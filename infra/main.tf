@@ -1,12 +1,24 @@
+// Generate a random suffix for a globally‐unique ACR name
+resource "random_integer" "suffix" {
+  min = 10000
+  max = 99999
+}
+
+// Build the ACR name using a local
+locals {
+  acr_name = "acrsubnetcalc${random_integer.suffix.result}"
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Resource Group
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
 }
 
-// Azure Container Registry
+// Azure Container Registry (ACR)
 resource "azurerm_container_registry" "acr" {
-  name                = var.acr_name
+  name                = local.acr_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   sku                 = "Standard"
@@ -19,8 +31,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   dns_prefix          = var.aks_cluster_name
-
-  kubernetes_version = var.kubernetes_version
+  kubernetes_version  = var.kubernetes_version
 
   default_node_pool {
     name       = "agentpool"
@@ -38,7 +49,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 }
 
-// Grant AKS permission to pull from ACR
+// Grant AKS permission to pull images from ACR
 resource "azurerm_role_assignment" "acr_pull" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"
