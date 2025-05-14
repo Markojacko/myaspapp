@@ -1,0 +1,15 @@
+@model SubnetResult
+@{
+    ViewData["Title"] = "Calculation Result";
+}
+
+<h1>Calculation Result</h1>
+
+<table class="table">
+  <tr><th>Network Address</th><td>@Model.NetworkAddress</td></tr>
+  <tr><th>Broadcast Address</th><td>@Model.BroadcastAddress</td></tr>
+  <tr><th>Usable Host Range</th><td>@Model.UsableRange</td></tr>
+  <tr><th>Total Hosts</th><td>@Model.TotalHosts</td></tr>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">New Calculation</a>
