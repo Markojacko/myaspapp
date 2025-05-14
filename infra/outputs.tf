@@ -14,7 +14,13 @@ output "aks_fqdn" {
 }
 
 output "kube_config" {
-  description = "Raw kubeconfig for AKS"
-  value       = azurerm_kubernetes_cluster.aks.kube_config[0].raw_kube_config
+  description = "Raw kubeconfig for AKS user authentication"
+  value       = azurerm_kubernetes_cluster.aks.kube_config[0].raw_config
+  sensitive   = true
+}
+
+output "kube_admin_config" {
+  description = "Raw kubeconfig for AKS admin authentication"
+  value       = azurerm_kubernetes_cluster.aks.kube_admin_config[0].raw_config
   sensitive   = true
 }
