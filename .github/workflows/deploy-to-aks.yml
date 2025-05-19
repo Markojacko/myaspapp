@@ -23,10 +23,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3                        # pull repo code :contentReference[oaicite:3]{index=3}
+        uses: actions/checkout@v3
 
       - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v4                    # install .NET for build :contentReference[oaicite:4]{index=4}
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
@@ -37,17 +37,16 @@ jobs:
           dotnet publish -c Release -o publish
 
       - name: Azure Login (OIDC)
-        uses: azure/login@v2                             # OIDC login to Azure :contentReference[oaicite:5]{index=5}
+        uses: azure/login@v2
         with:
-          auth-type: oidc
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
 
       - name: Build & Push Docker Image
         run: |
           IMAGE_TAG=${{ env.ACR_LOGIN_SERVER }}/myaspapp:${{ github.sha }}
-          docker build -t $IMAGE_TAG SubnetCalcWeb        # Docker context = project folder :contentReference[oaicite:6]{index=6}
+          docker build -t $IMAGE_TAG SubnetCalcWeb
           docker push $IMAGE_TAG
         env:
           DOCKER_BUILDKIT: 1
@@ -57,12 +56,12 @@ jobs:
           az aks get-credentials \
             --resource-group $RESOURCE_GROUP \
             --name $AKS_NAME \
-            --overwrite-existing                      # fetch kubeconfig :contentReference[oaicite:7]{index=7}
+            --overwrite-existing
 
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v3                   # install kubectl :contentReference[oaicite:8]{index=8}
+        uses: azure/setup-kubectl@v3
 
       - name: Deploy to AKS
         run: |
           kubectl apply -f k8s/deployment.yaml --namespace $NAMESPACE
-          kubectl apply -f k8s/service.yaml    --namespace $NAMESPACE  # apply manifests :contentReference[oaicite:9]{index=9}
+          kubectl apply -f k8s/service.yaml    --namespace $NAMESPACE
