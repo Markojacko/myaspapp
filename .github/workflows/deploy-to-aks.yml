@@ -1,14 +1,21 @@
-name: Deploy ASP.NET App to AKS
+permissions:
+  id-token: write
+  contents: read
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'SubnetCalcWeb/**'
+      - 'k8s/**'
   workflow_dispatch: {}
 
-
 env:
-  ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}  # e.g. myregistry.azurecr.io
-  RESOURCE_GROUP:    rg-subnetcalc                  # your RG name
-  AKS_NAME:          aks-subnetcalc                 # your AKS cluster name
-  NAMESPACE:         default                        # Kubernetes namespace
+  ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}    # e.g. myregistry.azurecr.io
+  RESOURCE_GROUP:    rg-subnetcalc                      # your RG name
+  AKS_NAME:          aks-subnetcalc                     # your AKS cluster name
+  NAMESPACE:         default                            # Kubernetes namespace
 
 jobs:
   build-and-deploy:
@@ -16,45 +23,46 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4                     # clones your repo :contentReference[oaicite:5]{index=5}
+        uses: actions/checkout@v3                        # pull repo code :contentReference[oaicite:3]{index=3}
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4                 # installs .NET for CI :contentReference[oaicite:6]{index=6}
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4                    # install .NET for build :contentReference[oaicite:4]{index=4}
         with:
           dotnet-version: '9.0.x'
 
-      - name: Build & publish project
-        working-directory: SubnetCalcWeb              # point at your project folder
+      - name: Build & Publish
+        working-directory: SubnetCalcWeb
         run: |
           dotnet restore
           dotnet publish -c Release -o publish
 
-      - name: Login to Azure
-        uses: azure/login@v2                          # authenticate to Azure :contentReference[oaicite:7]{index=7}
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2                             # OIDC login to Azure :contentReference[oaicite:5]{index=5}
         with:
-          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          auth-type: oidc
           tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
 
-      - name: Build & push Docker image
+      - name: Build & Push Docker Image
         run: |
           IMAGE_TAG=${{ env.ACR_LOGIN_SERVER }}/myaspapp:${{ github.sha }}
-          docker build -t $IMAGE_TAG SubnetCalcWeb     # context = your project folder
+          docker build -t $IMAGE_TAG SubnetCalcWeb        # Docker context = project folder :contentReference[oaicite:6]{index=6}
           docker push $IMAGE_TAG
+        env:
+          DOCKER_BUILDKIT: 1
 
       - name: Get AKS credentials
         run: |
           az aks get-credentials \
             --resource-group $RESOURCE_GROUP \
             --name $AKS_NAME \
-            --overwrite-existing                   # fetch kubeconfig :contentReference[oaicite:8]{index=8}
+            --overwrite-existing                      # fetch kubeconfig :contentReference[oaicite:7]{index=7}
 
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3                # installs kubectl
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3                   # install kubectl :contentReference[oaicite:8]{index=8}
 
       - name: Deploy to AKS
         run: |
-          kubectl apply -f k8s/deployment.yaml \
-            --namespace $NAMESPACE                  # adjust path if your manifests live elsewhere
-          kubectl apply -f k8s/service.yaml \
-            --namespace $NAMESPACE
+          kubectl apply -f k8s/deployment.yaml --namespace $NAMESPACE
+          kubectl apply -f k8s/service.yaml    --namespace $NAMESPACE  # apply manifests :contentReference[oaicite:9]{index=9}
