@@ -13,5 +13,8 @@ terraform {
 }
 
 provider "azurerm" {
+  # ─────────────── disable all auto-registration ───────────────
+  skip_provider_registration = true
+
   features {}
 }
